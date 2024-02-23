@@ -1,20 +1,14 @@
-import { Inter } from "next/font/google";
 import { Octokit } from "octokit";
 import { IUser } from "@/types/user";
 import UserListItem from "@/components/UserListItem";
 import React, { useRef, useState } from "react";
 import InfiniteLoader from "react-window-infinite-loader";
 import { FixedSizeList } from "react-window";
-
-const inter = Inter({ subsets: ["latin"] });
+import { Headers, octokit } from "@/config/config";
 
 interface IPropTypes {
   users: IUser[];
 }
-
-const octokit = new Octokit({
-  auth: "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",
-});
 
 export default function Home({ users }: IPropTypes) {
   const [usersData, setUsersData] = useState<IUser[]>(users);
@@ -22,20 +16,16 @@ export default function Home({ users }: IPropTypes) {
   const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
-    const res = await octokit.request("GET /users", {
-      headers: {
-        owner: "octocat",
-        repo: "Spoon-Knife",
-        "X-GitHub-Api-Version": "2022-11-28",
-        per_page: "100",
-        page: pageRef.current++,
-      },
-    });
+    const res = await octokit.request(
+      `GET /users?per_page=60&page=${pageRef.current + 1}`,
+      {
+        headers: Headers,
+      }
+    );
 
     if (res.data.length === 0) setCanFetchMore(false);
 
-    console.log(res);
-    // setUsersData((prev) => prev.concat(res.data as IUser[]));
+    setUsersData((prev) => prev.concat(res.data as IUser[]));
   };
 
   const renderUser = (user: IUser) => {
@@ -43,7 +33,7 @@ export default function Home({ users }: IPropTypes) {
   };
 
   return (
-    <>
+    <div className="flex flex-col p-4">
       <InfiniteLoader
         isItemLoaded={(index: number) => {
           return !canFetchMore || index < users.length;
@@ -65,15 +55,21 @@ export default function Home({ users }: IPropTypes) {
             onItemsRendered={onItemsRendered}
             overscanCount={30}
           >
-            {({ index, style, data }) => {
+            {({
+              index,
+              style,
+              data,
+            }: {
+              index: number;
+              style: any;
+              data: IUser[];
+            }) => {
               if (index >= data.length) {
                 return (
                   <div
                     style={style}
                     className="flex justify-center items-center"
-                  >
-                    Loading...
-                  </div>
+                  ></div>
                 );
               }
               return renderUser(data[index]);
@@ -81,20 +77,15 @@ export default function Home({ users }: IPropTypes) {
           </FixedSizeList>
         )}
       </InfiniteLoader>
-    </>
+    </div>
   );
 }
 
 export const getServerSideProps = async () => {
-  const res = await octokit.request("GET /users", {
-    since: 124,
-    headers: {
-      "X-GitHub-Api-Version": "2022-11-28",
-      "X-Ratelimit-Limit": 15000,
-      "X-Ratelimit-Remaining": 14996,
-    },
+  // const res = { data: [] };
+  const res = await octokit.request("GET /users?per_page=60&page=1", {
+    headers: Headers,
   });
 
-  console.log(res);
   return { props: { users: res.data } };
 };

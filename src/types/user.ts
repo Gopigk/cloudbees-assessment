@@ -61,3 +61,20 @@ export interface IUser {
   type: string;
   site_admin: boolean;
 }
+
+export interface ISingleUser extends IUser {
+  name: string;
+  company: string;
+  blog: string;
+  location: string;
+  email: string;
+  hireable: null;
+  bio: null;
+  twitter_username: string;
+  public_repos: number;
+  public_gists: number;
+  followers: number;
+  following: number;
+  created_at: Date;
+  updated_at: Date;
+}
