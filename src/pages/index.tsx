@@ -1,10 +1,10 @@
-import { Octokit } from "octokit";
 import { IUser } from "@/types/user";
 import UserListItem from "@/components/UserListItem";
 import React, { useRef, useState } from "react";
 import InfiniteLoader from "react-window-infinite-loader";
 import { FixedSizeList } from "react-window";
-import { Headers, octokit } from "@/config/config";
+import { BASE_URL, Headers } from "@/config/config";
+import axios from "axios";
 
 interface IPropTypes {
   users: IUser[];
@@ -16,8 +16,8 @@ export default function Home({ users }: IPropTypes) {
   const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
-    const res = await octokit.request(
-      `GET /users?per_page=60&page=${pageRef.current + 1}`,
+    const res = await axios.get(
+      `${BASE_URL}/users?per_page=60&page=${pageRef.current + 1}`,
       {
         headers: Headers,
       }
@@ -82,8 +82,8 @@ export default function Home({ users }: IPropTypes) {
 }
 
 export const getServerSideProps = async () => {
-  // const res = { data: [] };
-  const res = await octokit.request("GET /users?per_page=60&page=1", {
+  const res = await axios.get(`${BASE_URL}/users`, {
+    params: { per_page: 60, page: 1 },
     headers: Headers,
   });
 

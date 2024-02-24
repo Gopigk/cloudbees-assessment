@@ -1,5 +1,7 @@
 import { Octokit } from "octokit";
 
+export const BASE_URL = "https://api.github.com";
+
 export const octokit = new Octokit({
   auth: "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",
 });
