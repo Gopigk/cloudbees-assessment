@@ -10,27 +10,36 @@ interface IPropTypes {
   users: IUser[];
 }
 
+const PER_PAGE_COUNT = 60;
+
 export default function Home({ users }: IPropTypes) {
   const [usersData, setUsersData] = useState<IUser[]>(users);
+  const [loading, setLoading] = useState(false);
   const [canFetchMore, setCanFetchMore] = useState(true);
   const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
-    const res = await axios.get(
-      `${BASE_URL}/users?per_page=60&page=${pageRef.current + 1}`,
-      {
-        headers: Headers,
-      }
-    );
+    if (pageRef.current > 2) return setLoading(false);
+    setLoading(true);
+    return axios
+      .get(
+        `${BASE_URL}/users?per_page=${PER_PAGE_COUNT}&page=${pageRef.current}`
+      )
+      .then((response) => {
+        console.log(response);
+        if (response.data.length < PER_PAGE_COUNT) setCanFetchMore(false);
 
-    if (res.data.length === 0) setCanFetchMore(false);
-
-    setUsersData((prev) => prev.concat(res.data as IUser[]));
+        setUsersData((prev) => [...prev, ...response.data]);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   const renderUser = (user: IUser) => {
     return <UserListItem user={user} />;
   };
+
+  if (!usersData) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col p-4">
@@ -40,7 +49,10 @@ export default function Home({ users }: IPropTypes) {
         }}
         itemCount={users.length + 1}
         loadMoreItems={() => {
-          if (canFetchMore) fetchUsersData();
+          if (canFetchMore && !loading) {
+            pageRef.current += 1;
+            fetchUsersData();
+          }
         }}
         minimumBatchSize={30}
       >
@@ -64,12 +76,14 @@ export default function Home({ users }: IPropTypes) {
               style: any;
               data: IUser[];
             }) => {
-              if (index >= data.length) {
+              if (index >= data.length && loading) {
                 return (
                   <div
                     style={style}
                     className="flex justify-center items-center"
-                  ></div>
+                  >
+                    Loading...
+                  </div>
                 );
               }
               return renderUser(data[index]);
@@ -82,10 +96,15 @@ export default function Home({ users }: IPropTypes) {
 }
 
 export const getServerSideProps = async () => {
-  const res = await axios.get(`${BASE_URL}/users`, {
-    params: { per_page: 60, page: 1 },
-    headers: Headers,
-  });
-
-  return { props: { users: res.data } };
+  const res: IUser[] = [];
+  await axios
+    .get(`${BASE_URL}/users`, {
+      params: { per_page: PER_PAGE_COUNT, page: 1 },
+    })
+    .then((response) => {
+      res.push(response.data);
+    })
+    .catch((err) => console.error(err));
+  console.log(res);
+  return { props: { users: res } };
 };

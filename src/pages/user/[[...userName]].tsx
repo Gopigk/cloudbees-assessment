@@ -76,9 +76,7 @@ export default function SingleUser(props: IPropTypes) {
 
 export const getServerSideProps = async (context: any) => {
   const { userName } = context.params;
-  const res = await axios.get(`${BASE_URL}/users/${userName}`, {
-    headers: Headers,
-  });
+  const res = await axios.get(`${BASE_URL}/users/${userName}`);
 
   return { props: { user: res.data } };
 };
