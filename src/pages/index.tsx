@@ -19,7 +19,7 @@ export default function Home({ users }: IPropTypes) {
   const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
-    if (pageRef.current > 2) return setLoading(false);
+    // if (pageRef.current > 2) return setLoading(false);
     setLoading(true);
     return axios
       .get(
