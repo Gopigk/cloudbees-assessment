@@ -50,7 +50,6 @@ export default function Home({ users }: IPropTypes) {
     );
   };
 
-  console.log(usersData, usersData.length, canFetchMore, loading);
   if (!usersData) return <div>Loading...</div>;
 
   return (
