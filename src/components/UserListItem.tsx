@@ -9,15 +9,17 @@ interface IPropTypes {
 
 export default function UserListItem(props: IPropTypes) {
   const { user } = props;
-  const firstName = user.login.split(" ")[0];
-  const lastName = user.login.split(" ")[1];
 
+  if (!user?.login) return null;
+
+  const firstName = user?.login?.split(" ")[0];
+  const lastName = user?.login?.split(" ")[1];
   return (
-    <Link href={`/user/${user.login}`} className="flex flex-row w-full p-4">
+    <Link href={`/user/${user?.login}`} className="flex flex-row w-full p-4">
       <Image
         width={48}
         height={48}
-        src={user.avatar_url}
+        src={user?.avatar_url}
         alt="avatar"
         className="w-12 h-12 rounded-full"
       />
