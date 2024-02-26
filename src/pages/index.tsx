@@ -3,7 +3,7 @@ import UserListItem from "@/components/UserListItem";
 import React, { useRef, useState } from "react";
 import InfiniteLoader from "react-window-infinite-loader";
 import { FixedSizeList } from "react-window";
-import { BASE_URL, Headers } from "@/config/config";
+import { BASE_URL } from "@/config/config";
 import axios from "axios";
 
 interface IPropTypes {
@@ -19,7 +19,6 @@ export default function Home({ users }: IPropTypes) {
   const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
-    // if (pageRef.current > 2) return setLoading(false);
     setLoading(true);
     return axios
       .get(
@@ -39,10 +38,22 @@ export default function Home({ users }: IPropTypes) {
     return <UserListItem user={user} />;
   };
 
+  const renderRow = ({ index, style }: { index: number; style: any }) => {
+    return (
+      <div style={style} key={index}>
+        {index >= usersData.length && loading && canFetchMore ? (
+          <p>Loading...</p>
+        ) : (
+          renderUser(usersData[index])
+        )}
+      </div>
+    );
+  };
+
   if (!usersData) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-col p-4">
+    <div className="flex flex-col">
       <InfiniteLoader
         isItemLoaded={(index: number) => {
           return !canFetchMore || index < users.length;
@@ -54,40 +65,20 @@ export default function Home({ users }: IPropTypes) {
             fetchUsersData();
           }
         }}
-        minimumBatchSize={30}
+        minimumBatchSize={60}
       >
         {({ onItemsRendered, ref }: { onItemsRendered: any; ref: any }) => (
           <FixedSizeList
             ref={ref}
             itemData={usersData}
-            itemSize={38}
+            itemSize={70}
             itemCount={usersData.length + 1}
-            height={1000}
+            height={800}
             width={"100%"}
             onItemsRendered={onItemsRendered}
             overscanCount={30}
           >
-            {({
-              index,
-              style,
-              data,
-            }: {
-              index: number;
-              style: any;
-              data: IUser[];
-            }) => {
-              if (index >= data.length && loading) {
-                return (
-                  <div
-                    style={style}
-                    className="flex justify-center items-center"
-                  >
-                    Loading...
-                  </div>
-                );
-              }
-              return renderUser(data[index]);
-            }}
+            {renderRow}
           </FixedSizeList>
         )}
       </InfiniteLoader>
