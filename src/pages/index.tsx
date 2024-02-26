@@ -16,16 +16,16 @@ export default function Home({ users }: IPropTypes) {
   const [usersData, setUsersData] = useState<IUser[]>(users);
   const [loading, setLoading] = useState(false);
   const [canFetchMore, setCanFetchMore] = useState(true);
-  const pageRef = useRef(1);
 
   const fetchUsersData = async () => {
     setLoading(true);
     return axios
       .get(
-        `${BASE_URL}/users?per_page=${PER_PAGE_COUNT}&page=${pageRef.current}`
+        `${BASE_URL}/users?per_page=${PER_PAGE_COUNT}&since=${
+          usersData[usersData.length - 1].id
+        }`
       )
       .then((response) => {
-        console.log(response);
         if (response.data.length < PER_PAGE_COUNT) setCanFetchMore(false);
 
         setUsersData((prev) => [...prev, ...response.data]);
@@ -61,18 +61,16 @@ export default function Home({ users }: IPropTypes) {
         itemCount={users.length + 1}
         loadMoreItems={() => {
           if (canFetchMore && !loading) {
-            pageRef.current += 1;
             fetchUsersData();
           }
         }}
-        minimumBatchSize={60}
+        minimumBatchSize={50}
       >
-        {({ onItemsRendered, ref }: { onItemsRendered: any; ref: any }) => (
+        {({ onItemsRendered }: { onItemsRendered: any }) => (
           <FixedSizeList
-            ref={ref}
             itemData={usersData}
             itemSize={70}
-            itemCount={usersData.length + 1}
+            itemCount={usersData.length}
             height={800}
             width={"100%"}
             onItemsRendered={onItemsRendered}
@@ -90,7 +88,7 @@ export const getServerSideProps = async () => {
   const res: IUser[] = [];
   await axios
     .get(`${BASE_URL}/users`, {
-      params: { per_page: PER_PAGE_COUNT, page: 1 },
+      params: { per_page: PER_PAGE_COUNT, since: 1 },
     })
     .then((response) => {
       res.push(response.data);
