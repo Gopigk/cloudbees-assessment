@@ -50,28 +50,29 @@ export default function Home({ users }: IPropTypes) {
     );
   };
 
+  console.log(usersData, usersData.length, canFetchMore, loading);
   if (!usersData) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col">
       <InfiniteLoader
         isItemLoaded={(index: number) => {
-          return !canFetchMore || index < users.length;
+          return !canFetchMore || index < usersData.length;
         }}
-        itemCount={users.length + 1}
+        itemCount={usersData.length + 1}
         loadMoreItems={() => {
           if (canFetchMore && !loading) {
             fetchUsersData();
           }
         }}
-        minimumBatchSize={50}
+        threshold={50}
       >
         {({ onItemsRendered }: { onItemsRendered: any }) => (
           <FixedSizeList
             itemData={usersData}
             itemSize={70}
-            itemCount={usersData.length}
-            height={800}
+            itemCount={usersData.length + 1}
+            height={900}
             width={"100%"}
             onItemsRendered={onItemsRendered}
             overscanCount={30}
@@ -85,15 +86,14 @@ export default function Home({ users }: IPropTypes) {
 }
 
 export const getServerSideProps = async () => {
-  const res: IUser[] = [];
+  let res: IUser[] = [];
   await axios
     .get(`${BASE_URL}/users`, {
       params: { per_page: PER_PAGE_COUNT, since: 1 },
     })
     .then((response) => {
-      res.push(response.data);
+      res = response.data;
     })
     .catch((err) => console.error(err));
-  console.log(res);
   return { props: { users: res } };
 };
